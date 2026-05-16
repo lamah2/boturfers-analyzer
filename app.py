@@ -1,35 +1,23 @@
 import streamlit as st
-import requests
 import pandas as pd
 import re
-import json
 from io import BytesIO
 
-st.set_page_config(page_title="Analyseur Boturfers", layout="wide")
-st.title("Analyseur Boturfers")
-st.write("Collez un lien Boturfers (quinte-du-jour ou page course).")
+st.set_page_config(page_title="Analyseur chevaux", layout="wide")
 
+st.title("Analyseur de chevaux")
+st.write("Collez ici la liste des chevaux avec leurs pourcentages.")
 
-def extract_data(url):
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
-    r = requests.get(url, headers=headers, timeout=20)
-    html = r.text
+def extract_data(text):
+    pattern = r"(.+?)\s*\((\d+,\d+)%\)"
+    matches = re.findall(pattern, text)
 
     results = []
 
-    pattern = r'"name":"([^"]+)".*?"percentage":"([\d,]+)"'
-    matches = re.findall(pattern, html)
-
-    seen = set()
-
     for name, pct in matches:
         clean_name = name.strip()
-        if clean_name not in seen:
-            seen.add(clean_name)
-            results.append((clean_name, float(pct.replace(",", "."))))
+        percentage = float(pct.replace(",", "."))
+        results.append((clean_name, percentage))
 
     results.sort(key=lambda x: x[1], reverse=True)
     return results
@@ -40,36 +28,42 @@ def to_excel(data):
     df.insert(0, "Rang", range(1, len(df) + 1))
 
     output = BytesIO()
+
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False)
+        df.to_excel(writer, index=False, sheet_name="Classement")
 
     return output.getvalue()
 
 
-url = st.text_input("Lien Boturfers")
+horse_text = st.text_area(
+    "Collez votre liste ici",
+    height=400,
+    placeholder="""Exemple :
+Afyon (6,81%)
+Agiota (17,85%)
+Alhunter (4,49%)
+Alicanto (10,54%)"""
+)
 
-if st.button("Analyser"):
-    if url:
-        try:
-            data = extract_data(url)
+if st.button("Classer les chevaux"):
+    if horse_text.strip():
+        data = extract_data(horse_text)
 
-            if data:
-                st.success(f"{len(data)} chevaux trouvés")
+        if data:
+            st.success(f"{len(data)} chevaux analysés")
 
-                df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
-                df.index += 1
-                st.dataframe(df)
+            df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
+            df.index = df.index + 1
 
-                excel = to_excel(data)
+            st.dataframe(df, use_container_width=True)
 
-                st.download_button(
-                    "Télécharger Excel",
-                    excel,
-                    "classement.xlsx"
-                )
+            excel_file = to_excel(data)
 
-            else:
-                st.warning("Aucune donnée trouvée.")
-
-        except Exception as e:
-            st.error(str(e))
+            st.download_button(
+                label="Télécharger Excel",
+                data=excel_file,
+                file_name="classement_chevaux.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        else:
+            st.warning("Aucune donnée reconnue. Vérifiez le format.")
