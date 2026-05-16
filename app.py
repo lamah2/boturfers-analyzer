@@ -3,30 +3,38 @@ import pandas as pd
 import re
 from io import BytesIO
 
-st.set_page_config(page_title="Analyseur chevaux", layout="wide")
+st.set_page_config(page_title="Analyseur de course", layout="wide")
 
-st.title("Analyseur de chevaux")
-st.write("Collez ici la liste des chevaux avec leurs pourcentages.")
+st.title("Analyseur de course hippique")
+st.write("Collez la base Boturfers + les chevaux de votre course.")
 
-def extract_data(text):
+def extract_percentages(text):
     pattern = r"(.+?)\s*\((\d+,\d+)%\)"
     matches = re.findall(pattern, text)
 
-    results = []
+    data = {}
 
     for name, pct in matches:
-        clean_name = name.strip()
+        clean_name = name.strip().lower()
         percentage = float(pct.replace(",", "."))
-        results.append((clean_name, percentage))
+        data[clean_name] = percentage
 
-    results.sort(key=lambda x: x[1], reverse=True)
-    return results
+    return data
 
 
-def to_excel(data):
-    df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
-    df.insert(0, "Rang", range(1, len(df) + 1))
+def extract_race_horses(text):
+    horses = []
+    lines = text.splitlines()
 
+    for line in lines:
+        clean = line.strip()
+        if clean:
+            horses.append(clean)
+
+    return horses
+
+
+def to_excel(df):
     output = BytesIO()
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -35,35 +43,50 @@ def to_excel(data):
     return output.getvalue()
 
 
-horse_text = st.text_area(
-    "Collez votre liste ici",
-    height=400,
-    placeholder="""Exemple :
-Afyon (6,81%)
-Agiota (17,85%)
-Alhunter (4,49%)
-Alicanto (10,54%)"""
+boturfers_text = st.text_area(
+    "Base complète Boturfers",
+    height=300,
+    placeholder="Collez ici toute la liste Boturfers..."
 )
 
-if st.button("Classer les chevaux"):
-    if horse_text.strip():
-        data = extract_data(horse_text)
+race_text = st.text_area(
+    "Chevaux de votre course",
+    height=200,
+    placeholder="""Exemple :
+Dedel
+Hamavi
+Dream Weaver
+Agiota"""
+)
 
-        if data:
-            st.success(f"{len(data)} chevaux analysés")
+if st.button("Filtrer et classer"):
+    if boturfers_text and race_text:
+        percentages = extract_percentages(boturfers_text)
+        race_horses = extract_race_horses(race_text)
 
-            df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
-            df.index = df.index + 1
+        results = []
 
+        for horse in race_horses:
+            key = horse.lower()
+            if key in percentages:
+                results.append((horse, percentages[key]))
+
+        if results:
+            results.sort(key=lambda x: x[1], reverse=True)
+
+            df = pd.DataFrame(results, columns=["Cheval", "Pourcentage"])
+            df.insert(0, "Rang", range(1, len(df) + 1))
+
+            st.success(f"{len(results)} chevaux trouvés dans votre course")
             st.dataframe(df, use_container_width=True)
 
-            excel_file = to_excel(data)
+            excel_file = to_excel(df)
 
             st.download_button(
-                label="Télécharger Excel",
-                data=excel_file,
-                file_name="classement_chevaux.xlsx",
+                "Télécharger Excel",
+                excel_file,
+                "classement_course.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.warning("Aucune donnée reconnue. Vérifiez le format.")
+            st.warning("Aucun cheval correspondant trouvé.")
