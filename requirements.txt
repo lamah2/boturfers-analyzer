@@ -4,4 +4,3 @@ openpyxl
 pillow
 easyocr
 numpy
-streamlit-paste-button
