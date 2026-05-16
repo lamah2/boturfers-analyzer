@@ -1,14 +1,9 @@
 import streamlit as st
+import requests
 import pandas as pd
-import time
 import re
+import json
 from io import BytesIO
-
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-
 
 st.set_page_config(page_title="Analyseur Boturfers", layout="wide")
 st.title("Analyseur Boturfers")
@@ -16,38 +11,28 @@ st.write("Collez un lien Boturfers (quinte-du-jour ou page course).")
 
 
 def extract_data(url):
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
 
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
+    r = requests.get(url, headers=headers, timeout=20)
+    html = r.text
 
-    try:
-        driver.get(url)
-        time.sleep(5)
+    results = []
 
-        text = driver.page_source
-        pattern = r"([A-Za-zÀ-ÿ' -]+)\s*\((\d+,\d+)%\)"
-        matches = re.findall(pattern, text)
+    pattern = r'"name":"([^"]+)".*?"percentage":"([\d,]+)"'
+    matches = re.findall(pattern, html)
 
-        results = []
-        seen = set()
+    seen = set()
 
-        for name, pct in matches:
-            clean_name = re.sub(r"\s+", " ", name).strip()
-            if clean_name and clean_name not in seen:
-                seen.add(clean_name)
-                results.append((clean_name, float(pct.replace(",", "."))))
+    for name, pct in matches:
+        clean_name = name.strip()
+        if clean_name not in seen:
+            seen.add(clean_name)
+            results.append((clean_name, float(pct.replace(",", "."))))
 
-        results.sort(key=lambda x: x[1], reverse=True)
-        return results
-
-    finally:
-        driver.quit()
+    results.sort(key=lambda x: x[1], reverse=True)
+    return results
 
 
 def to_excel(data):
@@ -56,7 +41,8 @@ def to_excel(data):
 
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Classement")
+        df.to_excel(writer, index=False)
+
     return output.getvalue()
 
 
@@ -64,21 +50,26 @@ url = st.text_input("Lien Boturfers")
 
 if st.button("Analyser"):
     if url:
-        with st.spinner("Analyse en cours..."):
+        try:
             data = extract_data(url)
 
-        if data:
-            st.success(f"{len(data)} chevaux trouvés")
-            df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
-            df.index = df.index + 1
-            st.dataframe(df)
+            if data:
+                st.success(f"{len(data)} chevaux trouvés")
 
-            excel_file = to_excel(data)
-            st.download_button(
-                "Télécharger Excel",
-                excel_file,
-                "classement_boturfers.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        else:
-            st.warning("Aucune donnée trouvée.")
+                df = pd.DataFrame(data, columns=["Cheval", "Pourcentage"])
+                df.index += 1
+                st.dataframe(df)
+
+                excel = to_excel(data)
+
+                st.download_button(
+                    "Télécharger Excel",
+                    excel,
+                    "classement.xlsx"
+                )
+
+            else:
+                st.warning("Aucune donnée trouvée.")
+
+        except Exception as e:
+            st.error(str(e))
