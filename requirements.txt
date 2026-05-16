@@ -1,5 +1,7 @@
 streamlit
-selenium
-webdriver-manager
 pandas
 openpyxl
+pillow
+easyocr
+numpy
+streamlit-paste-button
