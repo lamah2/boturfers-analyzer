@@ -179,10 +179,10 @@ if page == "Course ciblée":
                     columns=["N°", "Cheval", "Pourcentage"]
                 )
 
-                df.insert(0, "Rang", range(1, len(df) + 1))
+                
 
                 st.success(f"{len(df)} chevaux trouvés")
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, use_container_width=True, hide_index=True)
 
                 excel = dataframe_to_excel(df)
 
@@ -254,10 +254,10 @@ else:
             elif top_choice == "Top 20":
                 df = df.head(20)
 
-            df.insert(0, "Rang", range(1, len(df) + 1))
+            
 
             st.success(f"{len(df)} chevaux analysés")
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
             excel = dataframe_to_excel(df)
 
