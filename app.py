@@ -73,8 +73,24 @@ def image_to_text(images):
     for img in images:
         image = Image.open(img).convert("RGB")
         arr = np.array(image)
+
         result = reader.readtext(arr, detail=0)
-        combined.extend(result)
+
+        lines = []
+        i = 0
+
+        while i < len(result):
+            current = str(result[i]).strip()
+
+            if current.isdigit() and i + 1 < len(result):
+                horse = str(result[i + 1]).strip()
+                lines.append(f"{current} {horse}")
+                i += 2
+            else:
+                lines.append(current)
+                i += 1
+
+        combined.extend(lines)
 
     return "\n".join(combined)
 
