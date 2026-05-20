@@ -131,39 +131,38 @@ if page == "Course ciblée":
         else:
             percentages = extract_percentages(bot_text)
             race_names = extract_names(race_text)
-
             results = []
-seen = set()
+            seen = set()
 
-normalized_percentages = {}
+            normalized_percentages = {}
 
-for key, value in percentages.items():
-    normalized_key = normalize_name(key)
-    normalized_percentages[normalized_key] = value
+            for key, value in percentages.items():
+                normalized_key = normalize_name(key)
+                normalized_percentages[normalized_key] = value
 
-for horse in race_names:
-    key = horse["key"]
+            for horse in race_names:
+                key = horse["key"]
 
-    if key in normalized_percentages and key not in seen:
-        seen.add(key)
+                if key in normalized_percentages and key not in seen:
+                    seen.add(key)
 
-        display, pct = normalized_percentages[key]
+                    display, pct = normalized_percentages[key]
 
-        results.append(
-            (
-                horse["numero"],
-                display,
-                pct
-            )
-        )
+                    results.append(
+                        (
+                            horse["numero"],
+                            display,
+                            pct
+                        )
+                    )
 
             if results:
-                results.sort(key=lambda x: x[1], reverse=True)
+                results.sort(key=lambda x: x[2], reverse=True)
 
-               df = pd.DataFrame(
-    results,
-    columns=["N°", "Cheval", "Pourcentage"]
-)
+                df = pd.DataFrame(
+                    results,
+                    columns=["N°", "Cheval", "Pourcentage"]
+                )
 
                 df.insert(0, "Rang", range(1, len(df) + 1))
 
