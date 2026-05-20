@@ -46,11 +46,12 @@ def extract_names(text):
         if not clean:
             continue
 
-       match = re.match(r"^\s*(\d+)\s+(.+?)\s*$", clean)
+        match = re.match(r"^\s*(\d+)\s+(.+?)\s*$", clean)
 
         if match:
-           number = str(match.group(1)).strip()
-name = str(match.group(2)).strip()
+            number = str(match.group(1)).strip()
+            name = str(match.group(2)).strip()
+
             horses.append({
                 "numero": number,
                 "nom": name,
@@ -64,7 +65,6 @@ name = str(match.group(2)).strip()
             })
 
     return horses
-
 
 def image_to_text(images):
     reader = get_reader()
