@@ -5,13 +5,27 @@ from io import BytesIO
 from PIL import Image
 import easyocr
 import numpy as np
-
+import unicodedata
 st.set_page_config(page_title="Analyseur Hippique", layout="wide")
 
 @st.cache_resource
 def get_reader():
     return easyocr.Reader(['en'], gpu=False)
+def normalize_name(name):
+    if not name:
+        return ""
 
+    name = str(name).upper()
+
+    name = unicodedata.normalize("NFD", name)
+    name = "".join(
+        c for c in name
+        if unicodedata.category(c) != "Mn"
+    )
+
+    name = re.sub(r"[^A-Z0-9]", "", name)
+
+    return name
 def extract_percentages(text):
     pattern = r"(.+?)\s*\((\d+[\.,]\d+)%\)"
     matches = re.findall(pattern, text)
@@ -23,14 +37,35 @@ def extract_percentages(text):
             data[clean.lower()] = (clean, float(pct.replace(',', '.')))
 
     return data
-
 def extract_names(text):
-    names = []
+    horses = []
+
     for line in text.splitlines():
         clean = line.strip()
-        if clean:
-            names.append(clean)
-    return names
+
+        if not clean:
+            continue
+
+        match = re.match(r"^(\d+)\s+(.+)$", clean)
+
+        if match:
+            number = match.group(1)
+            name = match.group(2)
+
+            horses.append({
+                "numero": number,
+                "nom": name,
+                "key": normalize_name(name)
+            })
+        else:
+            horses.append({
+                "numero": "",
+                "nom": clean,
+                "key": normalize_name(clean)
+            })
+
+    return horses
+
 
 def image_to_text(images):
     reader = get_reader()
@@ -98,22 +133,37 @@ if page == "Course ciblée":
             race_names = extract_names(race_text)
 
             results = []
-            seen = set()
+seen = set()
 
-            for horse in race_names:
-                key = horse.lower()
-                if key in percentages and key not in seen:
-                    seen.add(key)
-                    display, pct = percentages[key]
-                    results.append((display, pct))
+normalized_percentages = {}
+
+for key, value in percentages.items():
+    normalized_key = normalize_name(key)
+    normalized_percentages[normalized_key] = value
+
+for horse in race_names:
+    key = horse["key"]
+
+    if key in normalized_percentages and key not in seen:
+        seen.add(key)
+
+        display, pct = normalized_percentages[key]
+
+        results.append(
+            (
+                horse["numero"],
+                display,
+                pct
+            )
+        )
 
             if results:
                 results.sort(key=lambda x: x[1], reverse=True)
 
-                df = pd.DataFrame(
-                    results,
-                    columns=["Cheval", "Pourcentage"]
-                )
+               df = pd.DataFrame(
+    results,
+    columns=["N°", "Cheval", "Pourcentage"]
+)
 
                 df.insert(0, "Rang", range(1, len(df) + 1))
 
