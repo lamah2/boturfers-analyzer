@@ -338,14 +338,15 @@ if page == "Pronostics experts":
 
     zeturf_text = st.text_area(
         "Pronostic ZEturf",
-        height=80
+        height=80,
+        placeholder="9 1 4 6 2 7 3"
     )
 
-    genybet_text = st.text_area(
+    geny_text = st.text_area(
         "Pronostic Genybet",
-        height=80
+        height=80,
+        placeholder="1 9 6 3 4 8 2 11"
     )
-
     turfomania_text = st.text_area(
         "Pronostic Turfomania",
         height=80
