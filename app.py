@@ -74,57 +74,38 @@ def image_to_text(images):
         image = Image.open(img).convert("RGB")
         arr = np.array(image)
 
-        results = reader.readtext(arr, detail=1)
+        h, w = arr.shape[:2]
+
+        # découpage image : gauche=numéros / droite=noms
+        left = arr[:, 0:int(w * 0.18)]
+        right = arr[:, int(w * 0.18):w]
+
+        num_results = reader.readtext(left, detail=0)
+        name_results = reader.readtext(right, detail=0)
 
         numbers = []
+        for txt in num_results:
+            txt = str(txt).strip()
+            if txt.isdigit():
+                numbers.append(txt)
+
         names = []
-
-        for item in results:
-            bbox = item[0]
-            text = str(item[1]).strip()
-
-            if not text:
-                continue
-
-            x = min(p[0] for p in bbox)
-            y = min(p[1] for p in bbox)
-
-            if text.isdigit():
-                numbers.append({
-                    "text": text,
-                    "x": x,
-                    "y": y
-                })
-            else:
-                names.append({
-                    "text": text,
-                    "x": x,
-                    "y": y
-                })
+        for txt in name_results:
+            txt = str(txt).strip()
+            if txt and txt.upper() not in ["N°", "CHEVAUX"]:
+                names.append(txt)
 
         lines = []
-        used_numbers = set()
 
-        for name in sorted(names, key=lambda z: z["y"]):
-            best_match = None
-            best_distance = 999999
+        count = min(len(numbers), len(names))
 
-            for idx, num in enumerate(numbers):
-                if idx in used_numbers:
-                    continue
+        for i in range(count):
+            lines.append(f"{numbers[i]} {names[i]}")
 
-                vertical_distance = abs(name["y"] - num["y"])
-
-                if num["x"] < name["x"] and vertical_distance < best_distance:
-                    best_distance = vertical_distance
-                    best_match = idx
-
-            if best_match is not None and best_distance < 40:
-                used_numbers.add(best_match)
-                number = numbers[best_match]["text"]
-                lines.append(f"{number} {name['text']}")
-            else:
-                lines.append(name["text"])
+        # si OCR numéros incomplet
+        if len(names) > len(numbers):
+            for j in range(len(numbers), len(names)):
+                lines.append(names[j])
 
         combined.extend(lines)
 
