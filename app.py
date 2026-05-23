@@ -323,3 +323,30 @@ else:
                 excel,
                 "base_complete.xlsx"
             )
+# PAGE 3
+elif page == "Pronostics experts":
+    st.title("Pronostics experts pondérés")
+
+    pct_text = st.text_area(
+        "Classement pourcentage",
+        height=80,
+        placeholder="9 15 1 4 6 2 10 11"
+    )
+
+    zeturf_text = st.text_area(
+        "Pronostic ZEturf",
+        height=80,
+        placeholder="9 1 4 6 2 7 3"
+    )
+
+    geny_text = st.text_area(
+        "Pronostic Genybet",
+        height=80,
+        placeholder="1 9 6 3 4 8 2 11"
+    )
+
+    turf_text = st.text_area(
+        "Pronostic Turfomania",
+        height=80,
+        placeholder="1 6 9 5 2 4 12 7"
+    )
