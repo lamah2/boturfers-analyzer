@@ -155,7 +155,11 @@ def dataframe_to_excel(df):
 
 page = st.sidebar.radio(
     "Choisir une page",
-    ["Course ciblée", "Base complète Boturfers"]
+    [
+        "Course ciblée",
+        "Base complète Boturfers",
+        "Pronostics experts"
+    ]
 )
 
 # PAGE 1
