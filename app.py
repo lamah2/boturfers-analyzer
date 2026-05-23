@@ -250,7 +250,7 @@ st.download_button(
      excel, 
      "classement_course.xlsx"
 )
-else:
+ else:
                 st.warning("Aucun cheval correspondant trouvé.")
 
 # PAGE 2
