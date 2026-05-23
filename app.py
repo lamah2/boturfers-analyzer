@@ -76,7 +76,8 @@ def image_to_text(images):
 
         results = reader.readtext(arr, detail=1)
 
-        items = []
+        numbers = []
+        names = []
 
         for item in results:
             bbox = item[0]
@@ -88,47 +89,42 @@ def image_to_text(images):
             x = min(p[0] for p in bbox)
             y = min(p[1] for p in bbox)
 
-            items.append({
-                "x": x,
-                "y": y,
-                "text": text
-            })
-
-        # Trier verticalement
-        items.sort(key=lambda z: z["y"])
-
-        grouped = []
-        current_row = []
-
-        for item in items:
-            if not current_row:
-                current_row.append(item)
+            if text.isdigit():
+                numbers.append({
+                    "text": text,
+                    "x": x,
+                    "y": y
+                })
             else:
-                if abs(item["y"] - current_row[-1]["y"]) < 25:
-                    current_row.append(item)
-                else:
-                    grouped.append(current_row)
-                    current_row = [item]
-
-        if current_row:
-            grouped.append(current_row)
+                names.append({
+                    "text": text,
+                    "x": x,
+                    "y": y
+                })
 
         lines = []
+        used_numbers = set()
 
-        for row in grouped:
-            row.sort(key=lambda z: z["x"])
+        for name in sorted(names, key=lambda z: z["y"]):
+            best_match = None
+            best_distance = 999999
 
-            if len(row) >= 2:
-                number = row[0]["text"]
-                name = " ".join(cell["text"] for cell in row[1:])
+            for idx, num in enumerate(numbers):
+                if idx in used_numbers:
+                    continue
 
-                if number.isdigit():
-                    lines.append(f"{number} {name}")
-                else:
-                    lines.append(name)
+                vertical_distance = abs(name["y"] - num["y"])
 
-            elif len(row) == 1:
-                lines.append(row[0]["text"])
+                if num["x"] < name["x"] and vertical_distance < best_distance:
+                    best_distance = vertical_distance
+                    best_match = idx
+
+            if best_match is not None and best_distance < 40:
+                used_numbers.add(best_match)
+                number = numbers[best_match]["text"]
+                lines.append(f"{number} {name['text']}")
+            else:
+                lines.append(name["text"])
 
         combined.extend(lines)
 
