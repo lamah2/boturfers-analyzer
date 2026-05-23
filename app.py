@@ -235,7 +235,9 @@ if page == "Course ciblée":
                     results,
                     columns=["N°", "Cheval", "Pourcentage"]
                 )
-
+st.session_state["classement_auto"] = " ".join(
+    df["N°"].astype(str).head(8).tolist()
+)
                 
 
                 st.success(f"{len(df)} chevaux trouvés")
