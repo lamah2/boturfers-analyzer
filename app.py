@@ -74,26 +74,65 @@ def image_to_text(images):
         image = Image.open(img).convert("RGB")
         arr = np.array(image)
 
-        result = reader.readtext(arr, detail=0)
+        results = reader.readtext(arr, detail=1)
+
+        items = []
+
+        for item in results:
+            bbox = item[0]
+            text = str(item[1]).strip()
+
+            if not text:
+                continue
+
+            x = min(p[0] for p in bbox)
+            y = min(p[1] for p in bbox)
+
+            items.append({
+                "x": x,
+                "y": y,
+                "text": text
+            })
+
+        # Trier verticalement
+        items.sort(key=lambda z: z["y"])
+
+        grouped = []
+        current_row = []
+
+        for item in items:
+            if not current_row:
+                current_row.append(item)
+            else:
+                if abs(item["y"] - current_row[-1]["y"]) < 25:
+                    current_row.append(item)
+                else:
+                    grouped.append(current_row)
+                    current_row = [item]
+
+        if current_row:
+            grouped.append(current_row)
 
         lines = []
-        i = 0
 
-        while i < len(result):
-            current = str(result[i]).strip()
+        for row in grouped:
+            row.sort(key=lambda z: z["x"])
 
-            if current.isdigit() and i + 1 < len(result):
-                horse = str(result[i + 1]).strip()
-                lines.append(f"{current} {horse}")
-                i += 2
-            else:
-                lines.append(current)
-                i += 1
+            if len(row) >= 2:
+                number = row[0]["text"]
+                name = " ".join(cell["text"] for cell in row[1:])
+
+                if number.isdigit():
+                    lines.append(f"{number} {name}")
+                else:
+                    lines.append(name)
+
+            elif len(row) == 1:
+                lines.append(row[0]["text"])
 
         combined.extend(lines)
 
     return "\n".join(combined)
-
 def dataframe_to_excel(df):
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
