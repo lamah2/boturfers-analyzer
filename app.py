@@ -76,36 +76,73 @@ def image_to_text(images):
 
         h, w = arr.shape[:2]
 
-        # découpage image : gauche=numéros / droite=noms
-        left = arr[:, 0:int(w * 0.18)]
-        right = arr[:, int(w * 0.18):w]
+        # OCR avec coordonnées
+        results = reader.readtext(arr, detail=1)
 
-        num_results = reader.readtext(left, detail=0)
-        name_results = reader.readtext(right, detail=0)
+        rows = []
 
-        numbers = []
-        for txt in num_results:
-            txt = str(txt).strip()
-            if txt.isdigit():
-                numbers.append(txt)
+        for item in results:
+            bbox = item[0]
+            text = str(item[1]).strip()
 
-        names = []
-        for txt in name_results:
-            txt = str(txt).strip()
-            if txt and txt.upper() not in ["N°", "CHEVAUX"]:
-                names.append(txt)
+            if not text:
+                continue
+
+            x = min(p[0] for p in bbox)
+            y = min(p[1] for p in bbox)
+
+            if text.upper() in ["N°", "CHEVAUX"]:
+                continue
+
+            rows.append({
+                "x": x,
+                "y": y,
+                "text": text
+            })
+
+        # tri vertical
+        rows.sort(key=lambda r: r["y"])
+
+        grouped = []
+
+        for item in rows:
+            matched = False
+
+            for group in grouped:
+                if abs(group["y"] - item["y"]) < 20:
+                    group["items"].append(item)
+                    matched = True
+                    break
+
+            if not matched:
+                grouped.append({
+                    "y": item["y"],
+                    "items": [item]
+                })
 
         lines = []
 
-        count = min(len(numbers), len(names))
+        for group in grouped:
+            group["items"].sort(key=lambda z: z["x"])
 
-        for i in range(count):
-            lines.append(f"{numbers[i]} {names[i]}")
+            number = ""
+            name_parts = []
 
-        # si OCR numéros incomplet
-        if len(names) > len(numbers):
-            for j in range(len(numbers), len(names)):
-                lines.append(names[j])
+            for cell in group["items"]:
+                txt = cell["text"]
+
+                if txt.isdigit() and cell["x"] < w * 0.25:
+                    number = txt
+                else:
+                    name_parts.append(txt)
+
+            if name_parts:
+                horse_name = " ".join(name_parts)
+
+                if number:
+                    lines.append(f"{number} {horse_name}")
+                else:
+                    lines.append(horse_name)
 
         combined.extend(lines)
 
