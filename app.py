@@ -336,7 +336,7 @@ if page == "Pronostics experts":
     placeholder="9 15 1 4 6 2 10 11"
 )
 
-  zeturf_text = st.text_area(
+   zeturf_text = st.text_area(
         "Pronostic ZEturf",
         height=80,
         placeholder="9 1 4 6 2 7 3"
