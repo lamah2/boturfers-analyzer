@@ -329,14 +329,14 @@ else:
 if page == "Pronostics experts":
     st.title("Pronostics experts pondérés")
 
-   pct_text = st.text_area(
+   pct_text =     st.text_area(
     "Classement pourcentage",
     value=st.session_state.get("classement_auto", ""),
     height=80,
     placeholder="9 15 1 4 6 2 10 11"
 )
 
-    zeturf_text = st.text_area(
+  zeturf_text = st.text_area(
         "Pronostic ZEturf",
         height=80,
         placeholder="9 1 4 6 2 7 3"
