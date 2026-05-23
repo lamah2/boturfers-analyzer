@@ -251,8 +251,7 @@ if len(df) > 0:
         excel,
         "classement_course.xlsx"
     )
-else:
-    st.warning("Aucun cheval correspondant trouvé.")
+
 
 # PAGE 2
 else:
