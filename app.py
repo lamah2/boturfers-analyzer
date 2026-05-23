@@ -350,3 +350,58 @@ elif page == "Pronostics experts":
         height=80,
         placeholder="1 6 9 5 2 4 12 7"
     )
+    def parse_pronostic(text):
+        nums = re.findall(r"\d+", text)
+        return nums
+
+    def weighted_scores(nums, source_name):
+        scores = {}
+        total = len(nums)
+
+        for i, num in enumerate(nums):
+            points = total - i
+            scores[num] = {
+                "points": points,
+                "source": source_name
+            }
+
+        return scores
+
+    if st.button("Calculer consensus"):
+        all_scores = {}
+        all_sources = {}
+
+        sources_data = [
+            (pct_text, "Pourcentage"),
+            (zeturf_text, "ZEturf"),
+            (geny_text, "Genybet"),
+            (turf_text, "Turfomania")
+        ]
+
+        for txt, src in sources_data:
+            nums = parse_pronostic(txt)
+            scored = weighted_scores(nums, src)
+
+            for num, info in scored.items():
+                if num not in all_scores:
+                    all_scores[num] = 0
+                    all_sources[num] = []
+
+                all_scores[num] += info["points"]
+                all_sources[num].append(src)
+
+        if all_scores:
+            rows = []
+
+            for num in all_scores:
+                rows.append({
+                    "N°": num,
+                    "Score total": all_scores[num],
+                    "Sources": ", ".join(all_sources[num])
+                })
+
+            df = pd.DataFrame(rows)
+            df = df.sort_values("Score total", ascending=False)
+
+            st.success("Consensus calculé")
+            st.dataframe(df, use_container_width=True, hide_index=True)
