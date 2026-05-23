@@ -240,7 +240,7 @@ if page == "Course ciblée":
 )
                 
 
-if len(df) > 0:
+if "df" in locals() and len(df) > 0:
     st.success(f"{len(df)} chevaux trouvés")
     st.dataframe(df, use_container_width=True, hide_index=True)
 
