@@ -240,16 +240,16 @@ st.session_state["classement_auto"] = " ".join(
 )
                 
 
-                st.success(f"{len(df)} chevaux trouvés")
-                st.dataframe(df, use_container_width=True, hide_index=True)
+st.success(f"{len(df)} chevaux trouvés")
+st.dataframe(df, use_container_width=True, hide_index=True)
 
-                excel = dataframe_to_excel(df)
+excel = dataframe_to_excel(df)
 
-                st.download_button(
-                    "Télécharger Excel",
-                    excel,
-                    "classement_course.xlsx"
-                )
+st.download_button(
+    "Télécharger Excel",
+     excel, 
+     "classement_course.xlsx"
+)
             else:
                 st.warning("Aucun cheval correspondant trouvé.")
 
