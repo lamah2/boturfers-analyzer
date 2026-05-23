@@ -324,7 +324,7 @@ else:
                 "base_complete.xlsx"
             )
 # PAGE 3
-elif page == "Pronostics experts":
+if page == "Pronostics experts":
     st.title("Pronostics experts pondérés")
 
     pct_text = st.text_area(
