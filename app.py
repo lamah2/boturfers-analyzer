@@ -251,7 +251,7 @@ st.download_button(
      "classement_course.xlsx"
 )
   else:
-                st.warning("Aucun cheval correspondant trouvé.")
+     st.warning("Aucun cheval correspondant trouvé.")
 
 # PAGE 2
 else:
