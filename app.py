@@ -317,15 +317,15 @@ if search_names:
 
             
 
-            st.success(f"{len(df)} chevaux analysés")
-            st.dataframe(df, use_container_width=True, hide_index=True)
+    st.success(f"{len(df)} chevaux analysés")
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
-            excel = dataframe_to_excel(df)
+    excel = dataframe_to_excel(df)
 
-            st.download_button(
-                "Télécharger Excel",
-                excel,
-                "base_complete.xlsx"
+    st.download_button(
+        "Télécharger Excel",
+        excel,
+        "base_complete.xlsx"
             )
 # PAGE 3
 if page == "Pronostics experts":
