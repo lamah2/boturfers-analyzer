@@ -308,12 +308,12 @@ if search_names:
             lambda horse: any(name in horse for name in search_names)
         )
     ]
-            if top_choice == "Top 5":
-                df = df.head(5)
-            elif top_choice == "Top 10":
-                df = df.head(10)
-            elif top_choice == "Top 20":
-                df = df.head(20)
+    if top_choice == "Top 5":
+    df = df.head(5)
+    elif top_choice == "Top 10":
+    df = df.head(10)
+    elif top_choice == "Top 20":
+    df = df.head(20)
 
             
 
