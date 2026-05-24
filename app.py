@@ -236,8 +236,8 @@ if page == "Course ciblée":
                     columns=["N°", "Cheval", "Pourcentage"]
                 )
     if "N°" in df.columns:
-    st.session_state["classement_auto"] = " ".join(
-        df["N°"].astype(str).head(8).tolist()
+        st.session_state["classement_auto"] = " ".join(
+           df["N°"].astype(str).head(8).tolist()
     )
                 
 
