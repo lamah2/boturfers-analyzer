@@ -274,7 +274,13 @@ else:
         ["Tout", "Top 5", "Top 10", "Top 20"]
     )
 
-    search = st.text_input("Rechercher un cheval")
+    search = st.text_input(
+    "Rechercher un cheval ou des chevaux (séparés par des virgules)"
+)
+
+search_names = []
+if search.strip():
+    search_names = [x.strip().lower() for x in search.split(",") if x.strip()]
 
     if st.button("Analyser la base"):
         if base_images:
