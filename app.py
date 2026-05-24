@@ -302,16 +302,12 @@ if search.strip():
                 rows,
                 columns=["Cheval", "Pourcentage"]
             )
-
-            if search:
-                df = df[
-                    df["Cheval"].str.contains(
-                        search,
-                        case=False,
-                        na=False
-                    )
-                ]
-
+if search_names:
+    df = df[
+        df["Cheval"].str.lower().apply(
+            lambda horse: any(name in horse for name in search_names)
+        )
+    ]
             if top_choice == "Top 5":
                 df = df.head(5)
             elif top_choice == "Top 10":
