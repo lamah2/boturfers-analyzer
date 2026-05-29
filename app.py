@@ -228,15 +228,15 @@ if page == "Course ciblée":
                         )
                     )
 
-            if results:
-                results.sort(key=lambda x: x[2], reverse=True)
+                if results:
+                        results.sort(key=lambda x: x[2], reverse=True)
 
-                df = pd.DataFrame(
+                        df = pd.DataFrame(
                     results,
                     columns=["N°", "Cheval", "Pourcentage"]
                 )
-      if "df" in locals() and "N°" in df.columns:
-        st.session_state["classement_auto"] = " ".join(
+              if "df" in locals() and "N°" in df.columns:
+                    st.session_state["classement_auto"] = " ".join(
             df["N°"].astype(str).head(8).tolist()
         )     
 
